@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Báo cáo thống kê - Hệ thống nội bộ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #28a745; --primary-dark: #218838; --bg-light: #f4f7f6; --text-dark: #333; --text-gray: #6c757d; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; background-color: var(--bg-light); height: 100vh; overflow: hidden; color: var(--text-dark); }
+        
+        .sidebar { width: 280px; min-width: 280px; background-color: var(--primary); color: white; height: 100vh; padding: 25px 0; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar-brand { text-align: center; margin-bottom: 25px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-brand h2 { color: #ffffff; margin: 0; font-size: 18px; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 10px; line-height: 1.4; }
+        .sidebar-brand i { font-size: 28px; }
+        
+        .sidebar-menu { flex: 1; padding: 0 15px; overflow-y: auto; }
+        .sidebar a { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 14px 18px; margin-bottom: 8px; border-radius: 8px; background: transparent; font-weight: 500; font-size: 14px; transition: all 0.3s ease; }
+        .sidebar a i { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar a:hover { background-color: rgba(255,255,255,0.1); }
+        .sidebar a.active { background: var(--primary-dark); font-weight: 600; box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); }
+        .sidebar-footer { padding: 20px 15px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-footer a { background: rgba(255,255,255,0.2); text-align: center; margin-bottom: 0; font-weight: 600; justify-content: center; display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; padding: 12px; border-radius: 8px; }
+        .sidebar-footer a:hover { background: #dc3545; }
+
+        .content { flex: 1; padding: 40px 40px 0 40px; overflow-y: auto; height: 100vh; width: calc(100% - 280px); display: flex; flex-direction: column; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .top-header h2 { color: var(--text-dark); margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .top-header h2 i { color: var(--primary); }
+        .user-badge { background: #f8f9fa; color: var(--text-dark); padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #e9ecef; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e9ecef; display: flex; align-items: center; gap: 20px; }
+        .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; background: var(--primary); }
+        .stat-info h3 { margin: 0 0 5px; font-size: 24px; font-weight: 700; color: #333; }
+        .stat-info p { margin: 0; color: var(--text-gray); font-size: 14px; }
+        
+        .card-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e9ecef; flex: 1; margin-bottom: 20px; text-align: center; color: var(--text-gray); }
+        .footer { text-align: center; padding: 15px; color: var(--text-gray); font-size: 14px; border-top: 1px solid #e9ecef; margin: auto -40px 0 -40px; background: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2><i class="fa-brands fa-envira"></i> CỔNG BÁO CÁO<br>SỰ CỐ MÔI TRƯỜNG</h2>
+        </div>
+        <div class="sidebar-menu">
+            <!-- Điều phối viên -->
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Điều phối viên')}">
+                <a th:href="@{/admin(username=${username})}"><i class="fa-solid fa-list-check"></i> Quản lý sự cố</a>
+                <a th:href="@{/thongke(username=${username})}" class="active"><i class="fa-solid fa-chart-pie"></i> Báo cáo thống kê</a>
+                <a th:href="@{/hoso(username=${username})}"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+            </th:block>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div class="top-header">
+            <h2><i class="fa-solid fa-chart-pie"></i> Báo Cáo Thống Kê Sự Cố</h2>
+            <div class="user-badge">
+                <i class="fa-solid fa-user-tie" style="color: var(--primary);"></i>
+                <span th:text="${hoTen}">Từ Chấn Hiên</span> 
+                <span th:text="'(' + ${quyenHan} + ')'" style="color: var(--text-gray); font-size: 13px;">(Điều phối viên)</span>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #007bff;"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="stat-info">
+                    <h3 th:text="${tongSo}">0</h3>
+                    <p>Tổng số hồ sơ tiếp nhận</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <!-- ĐÃ SỬA: Đổi background từ #ffc107 (vàng) sang #17a2b8 (xanh dương) cho đồng bộ -->
+                <div class="stat-icon" style="background: #17a2b8;"><i class="fa-solid fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3 th:text="${dangXuLy}">0</h3>
+                    <p>Hồ sơ đang xử lý</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: var(--primary);"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="stat-info">
+                    <h3 th:text="${daHoanThanh}">0</h3>
+                    <p>Hồ sơ đã hoàn thành</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-box">
+             <!-- Khu vực vẽ biểu đồ -->
+             <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2026 Cổng Báo Cáo Sự Cố Môi Trường. 
+        </div>
+    </div>
+    <!-- Nhúng thư viện vẽ biểu đồ Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            
+    <!-- Code JavaSript để nhận dữ liệu từ Controller và vẽ -->
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            // Lấy dữ liệu đếm từ Spring Boot sang JS
+            const dangXuLy = [[${dangXuLy}]];
+            const daHoanThanh = [[${daHoanThanh}]];
+            const choDuyet = [[${choDuyet}]];
+            const biTuChoi = [[${biTuChoi}]];
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar', // ĐỔI TỪ 'doughnut' SANG 'bar' ĐỂ VẼ BIỂU ĐỘ CỘT
+                data: {
+                    labels: ['Đang xử lý', 'Đã hoàn thành', 'Chờ duyệt', 'Bị từ chối'],
+                    datasets: [{
+                        label: 'Số lượng hồ sơ', // Tên chú thích khi hover chuột vào cột
+                        data: [dangXuLy, daHoanThanh, choDuyet, biTuChoi],
+                        backgroundColor: [
+                            'rgba(23, 162, 184, 0.8)',   // Xanh dương
+                            'rgba(40, 167, 69, 0.8)',    // Xanh lá
+                            'rgba(255, 193, 7, 0.8)',    // Vàng
+                            'rgba(220, 53, 69, 0.8)'     // Đỏ
+                        ],
+                        borderColor: [
+                            '#17a2b8',
+                            '#28a745',
+                            '#ffc107',
+                            '#dc3545'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false // Ẩn ghi chú (legend) phía trên vì trục X đã có tên rồi
+                        },
+                        title: {
+                            display: true,
+                            text: 'Biểu đồ số lượng trạng thái xử lý sự cố',
+                            font: {
+                                size: 18
+                            },
+                            padding: {
+                                bottom: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true, // Ép trục Y luôn bắt đầu từ 0
+                            ticks: {
+                                stepSize: 1 // Hiển thị số nguyên (1, 2, 3...) vì đây là đếm số lượng
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lập Báo Cáo Sự Cố - ENV-REPORT</title>
+    <!-- Thư viện Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #28a745;
+            --primary-dark: #218838;
+            --bg-light: #f4f7f6;
+            --text-dark: #333;
+            --text-gray: #6c757d;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--bg-light); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+        }
+        
+        /* Navbar đồng bộ với index */
+        .navbar { background-color: var(--primary); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .navbar .brand { font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; letter-spacing: 0.5px; }
+        .navbar .brand i { font-size: 26px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 30px; border: 2px solid rgba(255,255,255,0.8); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        .nav-links a:hover { background-color: white; color: var(--primary); }
+
+        /* Vùng nội dung chính */
+        .main-content { flex: 1; padding: 50px 20px; display: flex; justify-content: center; align-items: flex-start; }
+        
+        /* Form Container VIP */
+        .container { width: 100%; max-width: 650px; background: white; padding: 45px 50px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px solid #eef2f0; }
+        .container-header { text-align: center; margin-bottom: 35px; }
+        .container-header h2 { color: var(--text-dark); margin: 0 0 10px; font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .container-header h2 i { color: var(--primary); font-size: 32px; }
+        .container-header p { color: var(--text-gray); margin: 0; font-size: 15px; }
+        
+        /* Alert thông báo thành công */
+        .alert { padding: 15px 20px; background-color: #d4edda; color: #155724; border-radius: 8px; margin-bottom: 25px; font-weight: 600; border-left: 5px solid var(--primary); display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(40,167,69,0.1); }
+        .alert i { font-size: 20px; }
+
+        /* Input Groups có icon bên trong */
+        .form-group { margin-bottom: 22px; }
+        .form-group label { font-weight: 600; color: #444; display: block; margin-bottom: 8px; font-size: 14px; }
+        .input-group { position: relative; display: flex; align-items: center; }
+        .input-group i.input-icon { position: absolute; left: 16px; color: #aaa; font-size: 16px; transition: 0.3s; top: 15px; }
+        
+        input, textarea { width: 100%; padding: 14px 14px 14px 45px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 15px; color: #333; transition: all 0.3s ease; background-color: #fafbfc; }
+        textarea { padding-top: 14px; } /* Căn lại padding cho textarea vì icon nằm ở top */
+        
+        input:focus, textarea:focus { border-color: var(--primary); outline: none; background-color: white; box-shadow: 0 0 0 4px rgba(40,167,69,0.15); }
+        input:focus + i.input-icon, textarea:focus + i.input-icon { color: var(--primary); }
+
+        /* Nút Submit VIP */
+        .btn-submit { width: 100%; background-color: var(--primary); color: white; padding: 16px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; box-shadow: 0 4px 12px rgba(40,167,69,0.2); }
+        .btn-submit:hover { background-color: var(--primary-dark); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(40,167,69,0.3); }
+
+           /* CSS cho Footer mới */
+        .site-footer {
+            background-color: var(--primary); /* Sử dụng màu xanh chủ đạo của bạn */
+            color: white;
+            padding: 40px 0 0 0;
+            margin-top: 50px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px 30px 20px;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.footer-left {
+    flex: 2;
+    min-width: 300px;
+}
+
+.footer-brand {
+    font-size: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-left p {
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: 0.9;
+    max-width: 400px;
+}
+
+.footer-right {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer-right h4 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.footer-right p {
+    font-size: 14px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-bottom {
+    background-color: var(--primary-dark); /* Màu xanh đậm hơn một chút */
+    text-align: center;
+    padding: 15px;
+    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer-bottom p {
+    margin: 0;
+    opacity: 0.8;
+}
+    </style>
+</head>
+<body>
+
+    <!-- Thanh điều hướng đồng bộ -->
+    <div class="navbar">
+        <a href="/" class="brand">
+            <i class="fa-brands fa-envira"></i>  CỔNG BÁO CÁO SỰ CỐ MÔI TRƯỜNG
+        </a>
+        <div class="nav-links">
+            <a href="/"><i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ</a>
+        </div>
+    </div>
+
+    <!-- Nội dung form -->
+    <div class="main-content">
+        <div class="container">
+            
+            <div class="container-header">
+                <h2><i class="fa-solid fa-file-signature"></i> Lập Phiếu Báo Cáo</h2>
+                <p>Vui lòng cung cấp thông tin chi tiết để bộ phận xử lý nhanh chóng tiếp cận.</p>
+            </div>
+            
+            <!-- Hiển thị thông báo khi gửi thành công -->
+            <div th:if="${message}" class="alert">
+                <i class="fa-solid fa-circle-check"></i>
+                <p th:text="${message}" style="margin: 0;"></p>
+            </div>
+
+            <!-- Bắt đầu Form -->
+            <form th:action="@{/submit-bao-cao}" th:object="${suCo}" method="post">
+                
+                <div class="form-group">
+                    <label>Họ và tên người báo cáo:</label>
+                    <div class="input-group">
+                        <input type="text" th:field="*{hoTenNguoiBao}" placeholder="Nhập họ và tên (hoặc để trống nếu ẩn danh)..." />
+                        <i class="fa-solid fa-user input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại liên hệ (*):</label>
+                    <div class="input-group">
+                        <input type="text" th:field="*{soDienThoaiNguoiBao}" placeholder="Ví dụ: 0901234567" required />
+                        <i class="fa-solid fa-phone input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Dropdown chọn Loại Sự Cố (Đã khớp với DB) -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Loại sự cố (*):</label>
+                    <select name="maLoai" class="form-select" required>
+                        <option value="">-- Vui lòng chọn loại sự cố --</option>
+                        <option value="LSC01">Rác thải sinh hoạt</option>
+                        <option value="LSC02">Nước thải công nghiệp</option>
+                        <option value="LSC03">Ô nhiễm không khí</option>
+                        <option value="LSC04">Tiếng ồn</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Địa chỉ xảy ra sự cố (*):</label>
+                    <div class="input-group">
+                        <input type="text" th:field="*{diaChi}" placeholder="Nhập rõ số nhà, tên đường, phường/xã..." required />
+                        <i class="fa-solid fa-location-dot input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mô tả chi tiết tình trạng ô nhiễm (*):</label>
+                    <div class="input-group">
+                        <textarea th:field="*{moTaChiTiet}" rows="5" placeholder="Mô tả loại rác thải, mức độ mùi hôi, thời gian phát hiện..." required></textarea>
+                        <i class="fa-solid fa-align-left input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- BỔ SUNG: Ô tải ảnh hiện trường đính kèm -->
+                <div style="margin-bottom: 20px; text-align: left;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-dark); font-size: 14px;">
+                        <i class="fa-solid fa-camera" style="color: var(--primary); margin-right: 5px;"></i> Hình ảnh hiện trường (nếu có):
+                    </label>
+                    <input type="file" name="fileAnh" accept="image/*" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; background-color: #fafbfc; font-size: 14px; cursor: pointer;">
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fa-solid fa-paper-plane"></i> GỬI BÁO CÁO HỆ THỐNG
+                </button>
+                
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-left">
+            <h3 class="footer-brand"><i class="fa-brands fa-envira"></i> CỔNG BÁO CÁO SỰ CỐ MÔI TRƯỜNG</h3>
+            <p>Hệ thống tiếp nhận, tra cứu và xử lý phản ánh sự cố môi trường nhanh chóng, minh bạch vì một đô thị xanh - sạch - đẹp.</p>
+        </div>
+        <div class="footer-right">
+            <h4>Liên hệ hỗ trợ</h4>
+            <p><i class="fa-solid fa-phone"></i> Hotline: 0913054119</p>
+            <p><i class="fa-solid fa-envelope"></i> Email: hotro@envreport.vn</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 Cổng Báo Cáo Sự Cố Môi Trường.</p>
+    </div>
+</footer>
+
+</body>
+</html>

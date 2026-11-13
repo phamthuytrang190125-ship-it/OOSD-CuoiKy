@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý tổ đội phụ trách - Hệ thống nội bộ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #28a745; --primary-dark: #218838; --bg-light: #f4f7f6; --text-dark: #333; --text-gray: #6c757d; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; background-color: var(--bg-light); height: 100vh; overflow: hidden; color: var(--text-dark); }
+        
+        .sidebar { width: 280px; background-color: var(--primary); color: white; height: 100vh; padding: 25px 0; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar-brand { text-align: center; margin-bottom: 25px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-brand h2 { color: #ffffff; margin: 0; font-size: 18px; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 10px; line-height: 1.4; }
+        .sidebar-brand i { font-size: 28px; }
+        
+        .sidebar-menu { flex: 1; padding: 0 15px; overflow-y: auto; }
+        .sidebar a { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 14px 18px; margin-bottom: 8px; border-radius: 8px; background: transparent; font-weight: 500; font-size: 14px; transition: all 0.3s ease; }
+        .sidebar a i { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar a:hover { background-color: rgba(255,255,255,0.1); }
+        .sidebar a.active { background: var(--primary-dark); font-weight: 600; }
+        
+        .sidebar-footer { padding: 20px 15px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-footer a { background: rgba(255,255,255,0.2); text-align: center; margin-bottom: 0; font-weight: 600; justify-content: center; display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; padding: 12px; border-radius: 8px; }
+        .sidebar-footer a:hover { background: #dc3545; }
+
+        .content { flex: 1; padding: 40px 40px 0 40px; overflow-y: auto; height: 100vh; width: calc(100% - 280px); display: flex; flex-direction: column; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .top-header h2 { color: var(--text-dark); margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .top-header h2 i { color: var(--primary); }
+        .user-badge { background: #f8f9fa; color: var(--text-dark); padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #e9ecef; }
+        
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e9ecef; flex: 1; margin-bottom: 20px; }
+        .table-header-actions { padding: 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background-color: #fafbfc; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 16px 20px; border-bottom: 1px solid #e9ecef; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 700; text-transform: uppercase; font-size: 12px; }
+        tr:hover { background-color: #f1f8f3; }
+        
+        .btn-add { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-add:hover { background-color: var(--primary-dark); }
+        .btn-action { padding: 6px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 13px; margin-right: 5px; }
+        .btn-sua { background-color: #fd7e14; }
+        .btn-xoa { background-color: #dc3545; }
+        
+        .badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; color: white; }
+        .badge-none { background-color: #6c757d; }
+        .badge-active { background-color: #17a2b8; }
+
+        .footer { text-align: center; padding: 15px; color: var(--text-gray); font-size: 14px; border-top: 1px solid #e9ecef; margin: auto -40px 0 -40px; background: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2><i class="fa-brands fa-envira"></i> CỔNG BÁO CÁO<br>SỰ CỐ MÔI TRƯỜNG</h2>
+        </div>
+        <div class="sidebar-menu">
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Quản trị viên')}">
+                <a th:href="@{/taikhoan(username=${param.username != null ? param.username : 'admin'})}">
+                    <i class="fa-solid fa-users-gear"></i> Quản lý tài khoản
+                </a>
+                <a th:href="@{/danhmuc(username=${param.username != null ? param.username : 'admin'})}">
+                    <i class="fa-solid fa-layer-group"></i> Quản lý danh mục loại sự cố
+                </a>
+                <a th:href="@{/todoi(username=${param.username != null ? param.username : 'admin'})}" class="active">
+                    <i class="fa-solid fa-people-group"></i> Quản lý tổ đội phụ trách
+                </a>
+                <a th:href="@{/hoso(username=${param.username != null ? param.username : 'admin'})}">
+                    <i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân
+                </a>
+            </th:block>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div class="top-header">
+            <h2><i class="fa-solid fa-people-group"></i> Quản Lý Danh Mục Tổ Đội</h2>
+            <div class="user-badge">
+                <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i>
+                <span th:text="${hoTen}">Phạm Thị Thuỳ Trang</span> 
+                <span th:text="'(' + ${quyenHan} + ')'" style="color: var(--text-gray); font-size: 13px;">(Quản trị viên)</span>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <div class="table-header-actions">
+                <strong style="color: var(--primary);"><i class="fa-solid fa-list"></i> Danh sách các tổ đội xử lý hiện trường</strong>
+                <button class="btn-add"><i class="fa-solid fa-plus"></i> Thêm tổ đội mới</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã Tổ Đội</th>
+                        <th>Tên Tổ Đội</th>
+                        <th>Trưởng Tổ Phụ Trách</th>
+                        <th>Số Điện Thoại Liên Hệ</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>TD01</strong></td>
+                        <td>Đội Phản Ứng Nhanh</td>
+                        <td><span class="badge badge-active"><i class="fa-solid fa-user-check"></i> Tiêu Thu Thuỷ (TK_NV01)</span></td>
+                        <td>0901234567</td>
+                        <td>
+                            <button class="btn-action btn-sua"><i class="fa-solid fa-pen"></i> Sửa</button>
+                            <button class="btn-action btn-xoa"><i class="fa-solid fa-trash"></i> Xóa</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>TD02</strong></td>
+                        <td>Đội Xử Lý Nước Thải</td>
+                        <td><span class="badge badge-active"><i class="fa-solid fa-user-check"></i> Liễu Tuỳ Phong (TK_NV02)</span></td>
+                        <td>0902345678</td>
+                        <td>
+                            <button class="btn-action btn-sua"><i class="fa-solid fa-pen"></i> Sửa</button>
+                            <button class="btn-action btn-xoa"><i class="fa-solid fa-trash"></i> Xóa</button>
+                        </td>
+                    </tr>
+                    <!-- ĐÃ SỬA LẠI ĐỘI 3 THEO DATABASE -->
+                    <tr>
+                        <td><strong>TD03</strong></td>
+                        <td>Đội Kiểm Tra Khí Thải</td>
+                        <td><span class="badge badge-active"><i class="fa-solid fa-user-check"></i> Lý Trầm Chu (TK_NV03)</span></td>
+                        <td>0903456789</td>
+                        <td>
+                            <button class="btn-action btn-sua"><i class="fa-solid fa-pen"></i> Sửa</button>
+                            <button class="btn-action btn-xoa"><i class="fa-solid fa-trash"></i> Xóa</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            © 2026 Cổng Báo Cáo Sự Cố Môi Trường.
+        </div>
+    </div>
+</body>
+</html>

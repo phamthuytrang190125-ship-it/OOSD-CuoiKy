@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý tài khoản - Hệ thống nội bộ</title>
+    <!-- Thư viện Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #28a745;
+            --primary-dark: #218838;
+            --bg-light: #f4f7f6;
+            --text-dark: #333;
+            --text-gray: #6c757d;
+        }
+
+        /* ĐÃ SỬA LỖI CÚ PHÁP: Đổi dấu '-' thành dấu '*' */
+        * { box-sizing: border-box; }
+        
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; background-color: var(--bg-light); height: 100vh; overflow: hidden; color: var(--text-dark); }
+        
+        /* Sidebar VIP */
+        .sidebar { width: 280px; background-color: var(--primary); color: white; height: 100vh; padding: 25px 0; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar-brand { text-align: center; margin-bottom: 25px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-brand h2 { color: #ffffff; margin: 0; font-size: 18px; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 10px; line-height: 1.4; }
+        .sidebar-brand i { font-size: 28px; }
+        
+        .sidebar-menu { flex: 1; padding: 0 15px; overflow-y: auto; }
+        .sidebar a { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 14px 18px; margin-bottom: 8px; border-radius: 8px; background: transparent; font-weight: 500; font-size: 14px; transition: all 0.3s ease; border: 1px solid transparent; }
+        .sidebar a i { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar a:hover { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+        .sidebar a.active { background: var(--primary-dark); font-weight: 600; box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.1); }
+        
+        .sidebar-footer { padding: 20px 15px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-footer a { background: rgba(255,255,255,0.2); text-align: center; margin-bottom: 0; font-weight: 600; justify-content: center; display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; padding: 12px; border-radius: 8px; }
+        .sidebar-footer a:hover { background: #dc3545; border-color: #dc3545; }
+
+        /* ĐÃ SỬA LẠI ĐỂ CÓ THANH CUỘN: Thêm height và width */
+        .content { flex: 1; padding: 40px 40px 0 40px; overflow-y: auto; height: 100vh; width: calc(100% - 280px); display: flex; flex-direction: column; }
+        
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .top-header h2 { color: var(--text-dark); margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .top-header h2 i { color: var(--primary); }
+        
+        .user-badge { background: #f8f9fa; color: var(--text-dark); padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #e9ecef; }
+        
+        /* Bảng dữ liệu VIP */
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: auto; border: 1px solid #e9ecef; flex: 1; margin-bottom: 20px; }
+        .table-header-actions { padding: 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background-color: #fafbfc; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 16px 20px; border-bottom: 1px solid #e9ecef; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        tr:hover { background-color: #f1f8f3; }
+        
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .bg-success { background-color: var(--primary); }
+        .bg-danger { background-color: #dc3545; }
+
+        /* Nút thao tác */
+        .action-group { display: flex; gap: 8px; white-space: nowrap; align-items: center; }
+        .btn-action { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; color: white; font-size: 13px; font-weight: bold; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .btn-add { background-color: var(--primary); font-size: 14px; padding: 12px 24px; border: none; box-shadow: 0 4px 10px rgba(40,167,69,0.2); }
+        .btn-add:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(40,167,69,0.3); }
+        
+        .btn-sua { background-color: #fd7e14; border: none; }
+        .btn-sua:hover { background-color: #e86e04; transform: translateY(-1px); }
+        
+        .btn-khoa { background-color: #dc3545; border: none; }
+        .btn-khoa:hover { background-color: #c82333; transform: translateY(-1px); }
+
+        .footer { text-align: center; padding: 15px; color: var(--text-gray); font-size: 14px; border-top: 1px solid #e9ecef; margin: auto -40px 0 -40px; background: white; }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>
+                <i class="fa-brands fa-envira"></i>
+                CỔNG BÁO CÁO<br>SỰ CỐ MÔI TRƯỜNG
+            </h2>
+        </div>
+        <div class="sidebar-menu">
+            <!-- Menu dành riêng cho Quản trị viên -->
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Quản trị viên')}">
+                <a th:href="@{/taikhoan(username=${username})}" class="active"><i class="fa-solid fa-users-gear"></i> Quản lý tài khoản</a>
+                <a th:href="@{/danhmuc(username=${username})}"><i class="fa-solid fa-layer-group"></i> Quản lý danh mục loại sự cố</a>
+                <a th:href="@{/todoi(username=${username})}"><i class="fa-solid fa-people-group"></i> Quản lý tổ đội phụ trách</a>
+                <a th:href="@{/hoso(username=${username})}"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+            </th:block>
+
+            <!-- Menu dành riêng cho Điều phối viên (nếu được phép truy cập xem tài khoản) -->
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Điều phối viên')}">
+                <a th:href="@{/admin(username=${username})}"><i class="fa-solid fa-list-check"></i> Quản lý sự cố</a>
+                <a th:href="@{/thongke(username=${username})}"><i class="fa-solid fa-chart-pie"></i> Báo cáo thống kê</a>
+                <a th:href="@{/danhmuc(username=${username})}"><i class="fa-solid fa-layer-group"></i> Quản lý danh mục</a>
+                <a th:href="@{/taikhoan(username=${username})}" class="active"><i class="fa-solid fa-users-gear"></i> Tài khoản nội bộ</a>
+                <a th:href="@{/hoso(username=${username})}"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+            </th:block>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+        </div>
+    </div>
+    
+    <!-- Nội dung chính -->
+    <div class="content">
+        
+        <!-- Header Top -->
+        <div class="top-header">
+            <h2><i class="fa-solid fa-users-gear"></i> Quản Lý Tài Khoản & Phân Quyền</h2>
+            <div class="user-badge">
+                <i class="fa-solid fa-shield-halved" style="color: var(--primary);" th:if="${quyenHan != null and quyenHan.contains('Quản trị viên')}"></i>
+                <i class="fa-solid fa-user-tie" style="color: var(--primary);" th:if="${quyenHan != null and quyenHan.contains('Điều phối viên')}"></i>
+                <span th:text="${hoTen}">Phạm Thị Thuỳ Trang</span> 
+                <span th:text="'(' + ${quyenHan} + ')'" style="color: var(--text-gray); font-size: 13px;">(Quản trị viên)</span>
+            </div>
+        </div>
+        
+        <!-- Bảng Dữ Liệu -->
+        <div class="table-container">
+            <div class="table-header-actions">
+                <button class="btn-action btn-add"><i class="fa-solid fa-user-plus"></i> Thêm tài khoản mới</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã TK</th>
+                        <th>Tên đăng nhập</th>
+                        <th>Họ và tên</th>
+                        <th>Quyền hạn</th>
+                        <th>Tổ đội phụ trách</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dùng vòng lặp th:each để tự động đẻ ra các dòng dựa trên Database -->
+                    <tr th:each="tk : ${listTaiKhoan}">
+                        <td><strong th:text="${tk.maTaiKhoan}">Mã TK</strong></td>
+                        <td th:text="${tk.tenDangNhap}">Tên Đăng Nhập</td>
+                        <td th:text="${tk.hoTen}">Họ Tên</td>
+                        <!-- Đã sửa cột Quyền Hạn để làm nổi bật Tổ trưởng -->
+                        <td>
+                            <!-- Nếu là TK_NV01, TK_NV02 hoặc TK_NV03 thì in đậm và gắn mác Tổ trưởng -->
+                            <span th:if="${tk.maTaiKhoan == 'TK_NV01' or tk.maTaiKhoan == 'TK_NV02' or tk.maTaiKhoan == 'TK_NV03'}" 
+                                style="color: #007bff; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                                <i class="fa-solid fa-star"></i> Tổ trưởng
+                            </span>
+                            
+                            <!-- Các tài khoản nhân viên bình thường (hoặc admin/điều phối) -->
+                            <span th:unless="${tk.maTaiKhoan == 'TK_NV01' or tk.maTaiKhoan == 'TK_NV02' or tk.maTaiKhoan == 'TK_NV03'}" 
+                                th:text="${tk.quyenHan}">
+                                Nhân viên
+                            </span>
+                        </td>
+                        
+                        <!-- Hiển thị Tổ đội, nếu null thì in ra dấu '-' -->
+                        <td th:text="${tk.maToDoi != null ? tk.maToDoi : '-'}">Tổ Đội</td>
+                        
+                        <!-- Đổi màu tự động theo trạng thái -->
+                        <td>
+                            <span th:if="${tk.trangThai == 'Hoạt động'}" 
+                                  style="background-color: #28a745; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-circle-check"></i> Hoạt động
+                            </span>
+                            <span th:unless="${tk.trangThai == 'Hoạt động'}" 
+                                  style="background-color: #dc3545; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-lock"></i> <span th:text="${tk.trangThai}">Đã khóa</span>
+                            </span>
+                        </td>
+                        
+                        <td>
+                            <div class="action-group">
+                                <button class="btn-action btn-sua"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                                <button class="btn-action btn-khoa"><i class="fa-solid fa-lock"></i> Khóa</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2026 Cổng Báo Cáo Sự Cố Môi Trường. 
+        </div>
+    </div>
+</body>
+</html>

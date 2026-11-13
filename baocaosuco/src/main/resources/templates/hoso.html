@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hồ sơ cá nhân - Hệ thống nội bộ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #28a745; --primary-dark: #218838; --bg-light: #f4f7f6; --text-dark: #333; --text-gray: #6c757d; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; background-color: var(--bg-light); height: 100vh; overflow: hidden; color: var(--text-dark); }
+        
+        .sidebar { width: 280px; min-width: 280px; background-color: var(--primary); color: white; height: 100vh; padding: 25px 0; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar-brand { text-align: center; margin-bottom: 25px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-brand h2 { color: #ffffff; margin: 0; font-size: 18px; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 10px; line-height: 1.4; }
+        .sidebar-brand i { font-size: 28px; }
+        
+        .sidebar-menu { flex: 1; padding: 0 15px; overflow-y: auto; }
+        .sidebar a { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 14px 18px; margin-bottom: 8px; border-radius: 8px; background: transparent; font-weight: 500; font-size: 14px; transition: all 0.3s ease; }
+        .sidebar a i { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar a:hover { background-color: rgba(255,255,255,0.1); }
+        .sidebar a.active { background: var(--primary-dark); font-weight: 600; box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); }
+        .sidebar-footer { padding: 20px 15px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-footer a { background: rgba(255,255,255,0.2); text-align: center; margin-bottom: 0; font-weight: 600; justify-content: center; display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; padding: 12px; border-radius: 8px; }
+        .sidebar-footer a:hover { background: #dc3545; }
+
+        .content { flex: 1; padding: 40px 40px 0 40px; overflow-y: auto; height: 100vh; width: calc(100% - 280px); display: flex; flex-direction: column; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .top-header h2 { color: var(--text-dark); margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .top-header h2 i { color: var(--primary); }
+        .user-badge { background: #f8f9fa; color: var(--text-dark); padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #e9ecef; }
+        
+        .profile-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #e9ecef; max-width: 700px; margin: 0 auto; width: 100%; flex: 1; margin-bottom: 20px; }
+        .profile-row { display: flex; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
+        .profile-label { width: 180px; font-weight: bold; color: var(--text-gray); }
+        .profile-value { flex: 1; color: var(--text-dark); font-weight: 600; }
+        
+        .btn-save { background-color: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-top: 15px; }
+        .btn-save:hover { background-color: var(--primary-dark); }
+        
+        .footer { text-align: center; padding: 15px; color: var(--text-gray); font-size: 14px; border-top: 1px solid #e9ecef; margin: auto -40px 0 -40px; background: white; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2><i class="fa-brands fa-envira"></i> CỔNG BÁO CÁO<br>SỰ CỐ MÔI TRƯỜNG</h2>
+        </div>
+        <div class="sidebar-menu">
+            <!-- Quản trị viên -->
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Quản trị viên')}">
+                <a th:href="@{/taikhoan(username=${username})}"><i class="fa-solid fa-users-gear"></i> Quản lý tài khoản</a>
+                <a th:href="@{/danhmuc(username=${username})}"><i class="fa-solid fa-layer-group"></i> Quản lý danh mục loại sự cố</a>
+                <a th:href="@{/todoi(username=${username})}"><i class="fa-solid fa-people-group"></i> Quản lý tổ đội phụ trách</a>
+                <a th:href="@{/admin(username=${username})}"><i class="fa-solid fa-list-check"></i> Xem danh sách sự cố</a>
+                <a th:href="@{/hoso(username=${username})}" class="active"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+            </th:block>
+
+            <!-- Điều phối viên -->
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Điều phối viên')}">
+                <a th:href="@{/admin(username=${username})}"><i class="fa-solid fa-list-check"></i> Quản lý sự cố</a>
+                <a th:href="@{/thongke(username=${username})}"><i class="fa-solid fa-chart-pie"></i> Báo cáo thống kê</a>
+                <a th:href="@{/hoso(username=${username})}" class="active"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+            </th:block>
+
+            <!-- Nhân viên hiện trường -->
+            <th:block th:if="${quyenHan != null and quyenHan.contains('Nhân viên')}">
+                <a th:href="@{/nhiemvu(username=${username})}"><i class="fa-solid fa-list-check"></i> Nhiệm vụ của tôi</a>
+                <a th:href="@{/hoso(username=${username})}" class="active"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+            </th:block>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div class="top-header">
+            <h2><i class="fa-solid fa-id-badge"></i> Thông Tin Hồ Sơ Cá Nhân</h2>
+            <div class="user-badge">
+                <i class="fa-solid fa-shield-halved" style="color: var(--primary);" th:if="${quyenHan != null and quyenHan.contains('Quản trị viên')}"></i>
+                <i class="fa-solid fa-user-tie" style="color: var(--primary);" th:if="${quyenHan != null and quyenHan.contains('Điều phối viên')}"></i>
+                <i class="fa-solid fa-helmet-safety" style="color: var(--primary);" th:if="${quyenHan != null and quyenHan.contains('Nhân viên')}"></i>
+                
+                <span th:text="${hoTen}">Họ Tên</span> 
+                <span th:text="'(' + ${quyenHan} + ')'" style="color: var(--text-gray); font-size: 13px;">(Chức vụ)</span>
+            </div>
+        </div>
+        
+        <div class="profile-card">
+            <h3 style="margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 25px;">
+                <i class="fa-solid fa-circle-user"></i> Chi Tiết Tài Khoản Cán Bộ
+            </h3>
+            <div class="profile-row">
+                <div class="profile-label">Họ và tên:</div>
+                <div class="profile-value" th:text="${hoTen}">Họ tên</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Chức vụ / Quyền:</div>
+                <div class="profile-value" th:text="${quyenHan}">Chức vụ</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Tên đăng nhập:</div>
+                <div class="profile-value" th:text="${username}">username</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Email cơ quan:</div>
+                <div class="profile-value" th:text="${email}">email@envreport.vn</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Số điện thoại:</div>
+                <div class="profile-value" th:text="${sdt}">0900000000</div>
+            </div>
+            <button class="btn-save"><i class="fa-solid fa-key"></i> Đổi mật khẩu</button>
+        </div>
+        <div class="footer">
+            © 2026 Cổng Báo Cáo Sự Cố Môi Trường.
+        </div>
+    </div>
+</body>
+</html>

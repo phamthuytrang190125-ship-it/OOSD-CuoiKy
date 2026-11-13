@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tra cứu sự cố - ENV-REPORT</title>
+    <!-- Thư viện Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #28a745;
+            --primary-dark: #218838;
+            --bg-light: #f4f7f6;
+            --text-dark: #333;
+            --text-gray: #6c757d;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--bg-light); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+        }
+        
+        /* Navbar đồng bộ index */
+        .navbar { background-color: var(--primary); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .navbar .brand { font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; letter-spacing: 0.5px; }
+        .navbar .brand i { font-size: 26px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 30px; border: 2px solid rgba(255,255,255,0.8); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        .nav-links a:hover { background-color: white; color: var(--primary); }
+
+        /* Vùng nội dung chính */
+        .main-content { flex: 1; padding: 50px 20px; display: flex; justify-content: center; align-items: flex-start; }
+        
+        /* Khung nội dung VIP */
+        .container { width: 100%; max-width: 800px; background: white; padding: 45px 50px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px solid #eef2f0; }
+        .container-header { text-align: center; margin-bottom: 35px; }
+        .container-header h2 { color: var(--text-dark); margin: 0 0 10px; font-size: 28px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .container-header h2 i { color: var(--primary); font-size: 30px; }
+        .container-header p { color: var(--text-gray); margin: 0; font-size: 15px; }
+        
+        /* Thanh tìm kiếm */
+        .search-wrapper { display: flex; gap: 15px; margin-bottom: 40px; }
+        .search-box { flex: 1; position: relative; display: flex; align-items: center; }
+        .search-box i { position: absolute; left: 20px; color: #aaa; font-size: 18px; transition: 0.3s; }
+        .search-box input { width: 100%; padding: 16px 20px 16px 50px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; outline: none; transition: all 0.3s ease; background-color: #fafbfc; color: #333; }
+        .search-box input:focus { border-color: var(--primary); background-color: white; box-shadow: 0 0 0 4px rgba(40,167,69,0.15); }
+        .search-box input:focus + i { color: var(--primary); }
+        
+        .btn-search { padding: 16px 35px; background-color: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: all 0.3s ease; text-transform: uppercase; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(40,167,69,0.2); }
+        .btn-search:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(40,167,69,0.3); }
+
+        /* Khung kết quả (Timeline) VIP */
+        .result-area { background: #f8f9fa; padding: 35px; border-radius: 12px; border: 1px solid #e9ecef; }
+        .result-area h3 { margin-top: 0; color: #333; font-size: 18px; border-bottom: 2px solid var(--primary); padding-bottom: 12px; display: inline-block; margin-bottom: 30px; font-weight: 700; }
+        
+        .timeline { border-left: 3px solid var(--primary); padding-left: 35px; margin-left: 15px; }
+        .step { margin-bottom: 35px; position: relative; }
+        .step:last-child { margin-bottom: 0; }
+        
+        /* Icon trạng thái timeline */
+        .step-icon { position: absolute; left: -52px; top: -5px; width: 32px; height: 32px; background: white; border-radius: 50%; border: 3px solid var(--primary); display: flex; justify-content: center; align-items: center; color: var(--primary); font-size: 14px; box-shadow: 0 0 0 4px #f8f9fa; }
+        
+        /* Trạng thái chưa hoàn thành (pending) */
+        .step.pending { border-left-color: #dee2e6; }
+        .timeline:has(.pending) { border-image: linear-gradient(to bottom, var(--primary) 65%, #dee2e6 65%) 1 100%; }
+        .step.pending .step-icon { border-color: #ced4da; color: #adb5bd; }
+        .step.pending h4, .step.pending p { color: #adb5bd; }
+        
+        .step h4 { margin: 0 0 8px 0; color: #2c3e50; font-size: 17px; font-weight: 700; }
+        .step p { margin: 0; color: #6c757d; font-size: 14px; line-height: 1.6; }
+        .highlight { font-weight: 600; color: #495057; }
+
+        /* CSS cho Footer mới */
+        .site-footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 40px 0 0 0;
+            margin-top: 50px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px 30px 20px;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .footer-left {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .footer-brand {
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-left p {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.9;
+            max-width: 400px;
+        }
+
+        .footer-right {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-right h4 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .footer-right p {
+            font-size: 14px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-bottom {
+            background-color: var(--primary-dark);
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-bottom p {
+            margin: 0;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Thanh điều hướng -->
+    <div class="navbar">
+        <a href="/" class="brand">
+            <i class="fa-brands fa-envira"></i> CỔNG BÁO CÁO SỰ CỐ MÔI TRƯỜNG
+        </a>
+        <div class="nav-links">
+            <a href="/"><i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ</a>
+        </div>
+    </div>
+
+    <!-- Khung chính -->
+    <div class="main-content">
+        <div class="container">
+            
+            <div class="container-header">
+                <h2><i class="fa-solid fa-magnifying-glass-location"></i> Tra Cứu Sự Cố</h2>
+                <p>Nhập mã số hồ sơ được cung cấp để theo dõi tiến độ xử lý hiện trường.</p>
+            </div>
+            
+            <!-- Biến khung tìm kiếm tĩnh thành Form động gọi hàm Controller -->
+            <form th:action="@{/tracuu}" method="get" class="search-wrapper">
+                <div class="search-box">
+                    <!-- Giữ lại mã vừa nhập trên ô text -->
+                    <input type="text" name="maSuCo" th:value="${maSuCoNhap}" placeholder="Nhập mã sự cố (Ví dụ: SC-9AEB4)..." required>
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <button type="submit" class="btn-search">Tìm kiếm</button>
+            </form>
+            
+            <!-- Hiển thị thông báo lỗi nếu nhập sai mã hoặc không có trong DB -->
+            <div th:if="${errorMsg != null}" style="color: #d32f2f; text-align: center; margin-top: 20px; padding: 15px; background-color: #ffebee; border-radius: 8px; font-weight: bold;">
+                <i class="fa-solid fa-circle-exclamation" style="margin-right: 5px;"></i> <span th:text="${errorMsg}"></span>
+            </div>
+
+            <!-- Khung kết quả hiển thị dạng ĐỘNG (Chỉ hiện khi tìm thấy sự cố) -->
+            <div th:if="${suCoTimThay != null}" class="result-area">
+                <h3><i class="fa-solid fa-folder-open" style="color: var(--primary); margin-right: 8px;"></i> Kết quả cho hồ sơ: #<span th:text="${suCoTimThay.maSuCo}">SC-A1B2C</span></h3>
+                
+                <div class="timeline">
+                    <!-- Bước 1: Tiếp nhận -->
+                    <div class="step">
+                        <div class="step-icon"><i class="fa-solid fa-check"></i></div>
+                        <h4>Đã tiếp nhận hồ sơ</h4>
+                        <p><span class="highlight">Thời gian:</span> <span th:text="${suCoTimThay.ngayBaoCao != null ? #temporals.format(suCoTimThay.ngayBaoCao, 'HH:mm - dd/MM/yyyy') : ''}">10:30 - 26/10/2026</span><br>
+                        Hệ thống đã ghi nhận thông tin phản ánh từ người dân tại: <span th:text="${suCoTimThay.diaChi}"></span>.</p>
+                    </div>
+                    
+                    <!-- Bước 2: Phân công -->
+                    <div class="step" th:classappend="${suCoTimThay.trangThai == 'Chờ duyệt'} ? 'pending' : ''">
+                        <div class="step-icon">
+                            <i class="fa-solid fa-user-gear" th:if="${suCoTimThay.trangThai == 'Đang xử lý' or suCoTimThay.trangThai == 'Đã hoàn thành'}"></i>
+                            <i class="fa-solid fa-hourglass-half" th:unless="${suCoTimThay.trangThai == 'Đang xử lý' or suCoTimThay.trangThai == 'Đã hoàn thành'}"></i>
+                        </div>
+                        <h4>Trạng thái điều phối</h4>
+                        <p>
+                            <span class="highlight">Hiện tại:</span> <strong th:text="${suCoTimThay.trangThai}" th:style="${suCoTimThay.trangThai == 'Bị từ chối' ? 'color: red;' : ''}">Đang xử lý</strong><br>
+                            <span th:if="${suCoTimThay.trangThai == 'Chờ duyệt'}">Hồ sơ đang chờ điều phối viên xét duyệt và phân công đội phụ trách.</span>
+                            <span th:if="${suCoTimThay.trangThai == 'Đang xử lý' or suCoTimThay.trangThai == 'Đã hoàn thành'}">Đã phân công đội phụ trách đến hiện trường xử lý.</span>
+                            <span th:if="${suCoTimThay.trangThai == 'Bị từ chối'}">Lý do: <span th:text="${suCoTimThay.lyDoTuChoi}"></span></span>
+                        </p>
+                    </div>
+                    
+                    <!-- Bước 3: Nghiệm thu -->
+                    <div class="step" th:classappend="${suCoTimThay.trangThai != 'Đã hoàn thành'} ? 'pending' : ''">
+                        <div class="step-icon">
+                            <i class="fa-solid fa-check-double" th:if="${suCoTimThay.trangThai == 'Đã hoàn thành'}"></i>
+                            <i class="fa-solid fa-hourglass-end" th:unless="${suCoTimThay.trangThai == 'Đã hoàn thành'}"></i>
+                        </div>
+                        <h4>Đã hoàn thành (Nghiệm thu)</h4>
+                        <p th:if="${suCoTimThay.trangThai == 'Đã hoàn thành'}">Sự cố đã được bộ phận hiện trường xử lý dứt điểm. Cảm ơn bạn đã chung tay bảo vệ môi trường!</p>
+                        <p th:unless="${suCoTimThay.trangThai == 'Đã hoàn thành'}">Đang chờ cập nhật kết quả và hình ảnh hiện trường từ cán bộ xử lý...</p>
+                    </div>
+                </div>
+
+                <!-- Biên bản kết quả xử lý (Bảng KET_QUA_XU_LY) -->
+                <div th:if="${ketQuaXuLy != null}" style="margin-top: 25px; padding: 15px 20px; background-color: #e8f5e9; border-left: 4px solid #28a745; border-radius: 6px; text-align: left;">
+                    <h4 style="margin: 0 0 6px 0; color: #1b5e20; font-size: 15px;">
+                        <i class="fa-solid fa-file-shield"></i> Biên bản Kết quả Nghiệm thu Hiện trường
+                    </h4>
+                    <p style="margin: 3px 0; font-size: 13.5px;"><strong>Mã kết quả:</strong> <span th:text="${ketQuaXuLy.maKetQua}">KQ001</span></p>
+                    <p style="margin: 3px 0; font-size: 13.5px;"><strong>Phương án xử lý:</strong> <span th:text="${ketQuaXuLy.phuongAnXuLy}">Đã xử lý dứt điểm</span></p>
+                </div>
+
+                <!-- Hiển thị HÌNH ẢNH TRỰC QUAN (Bảng HINH_ANH) -->
+                <div th:if="${(listHinhAnh != null and !listHinhAnh.empty) or (listAnhNghiemThu != null and !listAnhNghiemThu.empty)}" 
+                     style="margin-top: 15px; padding: 20px; background: #fff; border: 1px solid #e9ecef; border-radius: 8px; text-align: left;">
+                    <h4 style="margin: 0 0 12px 0; color: #333; font-size: 15px;">
+                        <i class="fa-solid fa-camera"></i> Hình ảnh Hiện trường & Nghiệm thu
+                    </h4>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <!-- Ảnh báo cáo -->
+                        <div th:each="img : ${listHinhAnh}" style="text-align: center;">
+                            <span style="background: #ffc107; color: #333; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; display: inline-block; margin-bottom: 5px;" th:text="${img.loaiHinhAnh}">Báo cáo</span>
+                            <br>
+                            <img th:src="${img.duongDanURL}" alt="Ảnh sự cố" style="width: 180px; height: 130px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
+                        </div>
+                        <!-- Ảnh nghiệm thu -->
+                        <div th:each="imgNT : ${listAnhNghiemThu}" style="text-align: center;">
+                            <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; display: inline-block; margin-bottom: 5px;" th:text="${imgNT.loaiHinhAnh}">Nghiệm thu</span>
+                            <br>
+                            <img th:src="${imgNT.duongDanURL}" alt="Ảnh nghiệm thu" style="width: 180px; height: 130px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" />
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-left">
+            <h3 class="footer-brand"><i class="fa-brands fa-envira"></i> CỔNG BÁO CÁO SỰ CỐ MÔI TRƯỜNG</h3>
+            <p>Hệ thống tiếp nhận, tra cứu và xử lý phản ánh sự cố môi trường nhanh chóng, minh bạch vì một đô thị xanh - sạch - đẹp.</p>
+        </div>
+        <div class="footer-right">
+            <h4>Liên hệ hỗ trợ</h4>
+            <p><i class="fa-solid fa-phone"></i> Hotline: 0913054119</p>
+            <p><i class="fa-solid fa-envelope"></i> Email: hotro@envreport.vn</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 Cổng Báo Cáo Sự Cố Môi Trường.</p>
+    </div>
+</footer>
+</body>
+</html>

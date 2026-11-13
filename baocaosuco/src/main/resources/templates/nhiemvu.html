@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nhiệm vụ của tôi - Hệ thống nội bộ</title>
+    <!-- Thư viện Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #28a745;
+            --primary-dark: #218838;
+            --bg-light: #f4f7f6;
+            --text-dark: #333;
+            --text-gray: #6c757d;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; background-color: var(--bg-light); min-height: 100vh; overflow-x: hidden; color: var(--text-dark); }
+        
+        /* Sidebar cố định bên trái */
+        .sidebar { width: 280px; min-width: 280px; background-color: var(--primary); color: white; height: 100vh; position: fixed; top: 0; left: 0; padding: 25px 0; display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar-brand { text-align: center; margin-bottom: 25px; padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-brand h2 { color: #ffffff; margin: 0; font-size: 18px; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; gap: 10px; line-height: 1.4; }
+        .sidebar-brand i { font-size: 28px; }
+        
+        .sidebar-menu { flex: 1; padding: 0 15px; overflow-y: auto; }
+        .sidebar a { display: flex; align-items: center; gap: 12px; color: white; text-decoration: none; padding: 14px 18px; margin-bottom: 8px; border-radius: 8px; background: transparent; font-weight: 500; font-size: 14px; transition: all 0.3s ease; border: 1px solid transparent; }
+        .sidebar a i { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar a:hover { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+        .sidebar a.active { background: var(--primary-dark); font-weight: 600; box-shadow: inset 0 3px 5px rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.1); }
+        
+        .sidebar-footer { padding: 20px 15px; border-top: 1px solid rgba(255,255,255,0.2); }
+        .sidebar-footer a { background: rgba(255,255,255,0.2); text-align: center; margin-bottom: 0; font-weight: 600; justify-content: center; display: flex; align-items: center; gap: 8px; color: white; text-decoration: none; padding: 12px; border-radius: 8px;}
+        .sidebar-footer a:hover { background: #dc3545; border-color: #dc3545; }
+
+        /* Nội dung chính */
+        .content { margin-left: 280px; flex: 1; padding: 40px 40px 0 40px; min-height: 100vh; display: flex; flex-direction: column; width: calc(100% - 280px); }
+        
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .top-header h2 { color: var(--text-dark); margin: 0; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .top-header h2 i { color: var(--primary); }
+        
+        .user-badge { background: #f8f9fa; color: var(--text-dark); padding: 10px 20px; border-radius: 30px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; border: 1px solid #e9ecef; }
+        .user-badge i { color: var(--primary); font-size: 18px; }
+        .user-badge span { color: var(--text-gray); font-size: 13px; font-weight: 400; }
+        
+        /* Dropdown Thông báo */
+        .noti-dropdown:hover .noti-content { display: block !important; }
+
+        /* Bảng dữ liệu */
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: auto; border: 1px solid #e9ecef; margin-bottom: 20px; }
+        .table-header-actions { padding: 20px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center; background-color: #fafbfc; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 16px 20px; border-bottom: 1px solid #e9ecef; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; white-space: nowrap; }
+        tr:hover { background-color: #f1f8f3; }
+        
+        .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .bg-warning { background-color: #ffc107; color: #212529; }
+
+        .action-group { display: flex; gap: 8px; white-space: nowrap; align-items: center; }
+        .btn-action { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; color: white; font-size: 13px; font-weight: bold; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); white-space: nowrap; }
+        
+        .btn-update { background-color: var(--primary); }
+        .btn-update:hover { background-color: var(--primary-dark); transform: translateY(-1px); }
+
+        .footer { text-align: center; padding: 15px; color: var(--text-gray); font-size: 14px; border-top: 1px solid #e9ecef; margin: auto -40px 0 -40px; background: white; }
+    </style>
+</head>
+<body>
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <h2>
+                <i class="fa-brands fa-envira"></i>
+                CỔNG BÁO CÁO<br>SỰ CỐ MÔI TRƯỜNG
+            </h2>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/nhiemvu" class="active"><i class="fa-solid fa-list-check"></i> Nhiệm vụ của tôi</a>
+            <a th:href="@{/hoso(username=${param.username})}"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a>
+        </div>
+    </div>
+    
+    <!-- Nội dung chính -->
+    <div class="content">
+        
+        <!-- Header Top -->
+        <div class="top-header">
+            <h2><i class="fa-solid fa-clipboard-list"></i> Danh Sách Phiếu Phân Công Xử Lý</h2>
+            
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- CHUÔNG THÔNG BÁO TƯƠNG TÁC CLICK TRỰC TIẾP -->
+                <details style="position: relative; display: inline-block;">
+                    <summary style="background: #f8f9fa; padding: 10px 18px; border-radius: 30px; border: 1px solid #e9ecef; display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;">
+                        <i class="fa-solid fa-bell" style="color: var(--primary); font-size: 16px;"></i>
+                        <span style="font-size: 13px; font-weight: 600;">Thông báo</span>
+                        <span style="background: #dc3545; color: white; border-radius: 50%; padding: 2px 7px; font-size: 11px; font-weight: bold;" 
+                              th:text="${listThongBao != null ? listThongBao.size() : 0}">3</span>
+                    </summary>
+                    
+                    <!-- Hộp nội dung xổ xuống khi click -->
+                    <div style="position: absolute; right: 0; top: 120%; background: white; width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid #e9ecef; z-index: 1000; padding: 15px; text-align: left;">
+                        <div style="font-weight: bold; font-size: 13.5px; padding-bottom: 8px; border-bottom: 1px solid #eee; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-envelope-open-text"></i> Danh sách thông báo hệ thống
+                        </div>
+                        
+                        <div th:if="${listThongBao == null or listThongBao.empty}" style="font-size: 13px; color: gray; text-align: center; padding: 15px;">
+                            Chưa có thông báo nào.
+                        </div>
+                        
+                        <div th:each="tb : ${listThongBao}" style="padding: 10px; border-bottom: 1px solid #f1f1f1; font-size: 13px;">
+                            <strong th:text="${tb.tieuDe}" style="color: #333; display: block; margin-bottom: 3px;">Tiêu đề</strong>
+                            <span th:text="${tb.noiDung}" style="color: #555; display: block; line-height: 1.4;">Nội dung</span>
+                            <span style="font-size: 11px; color: #999; margin-top: 4px; display: block;" th:text="${tb.trangThai}">Chưa đọc</span>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- USER BADGE -->
+                <div class="user-badge">
+                    <i class="fa-solid fa-helmet-safety"></i>
+                    <span th:text="${hoTen}" style="font-weight: 600; color: var(--text-dark); font-size: 14px;">Tiêu Thu Thuỷ</span> 
+                    <span th:text="'(' + ${quyenHan} + ')'" style="color: var(--text-gray); font-size: 13px;">(Nhân viên hiện trường)</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bảng Dữ Liệu -->
+        <div class="table-container">
+            <div class="table-header-actions">
+                <strong style="color: var(--primary);"><i class="fa-solid fa-filter"></i> Phiếu việc cần xử lý mới nhất</strong>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã Phiếu</th>
+                        <th>Mã Sự Cố</th>
+                        <th>Nội dung / Địa chỉ</th>
+                        <th>Hạn xử lý</th>
+                        <th>Mức độ</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="phieu : ${listPhieu}">
+                        <td><strong th:text="${phieu.maPhieu}">PPC001</strong></td>
+                        <td th:text="${phieu.maSuCo}">SC261001</td>
+                        <td th:text="${phieu.suCo != null ? phieu.suCo.diaChi : 'Đang cập nhật'}">Địa chỉ sự cố</td>
+                        <td th:text="${phieu.ngayLap != null ? #temporals.format(phieu.ngayLap, 'dd/MM/yyyy HH:mm') : ''}">28/10/2026</td>
+                        <!-- Cột Mức độ (Tự động đổi màu) -->
+                        <td>
+                            <th:block th:switch="${phieu.mucDoUuTien}">
+                                <!-- Nếu mức độ là Cao hoặc Khẩn cấp -> Màu Đỏ -->
+                                <span th:case="'Cao'" class="badge" style="background-color: #dc3545; color: white;">
+                                    <i class="fa-solid fa-fire" style="margin-right: 3px;"></i> Khẩn cấp
+                                </span>
+                                <!-- Nếu mức độ là Thấp -> Màu Xanh Dương -->
+                                <span th:case="'Thấp'" class="badge" style="background-color: #17a2b8; color: white;">
+                                    <i class="fa-solid fa-arrow-down" style="margin-right: 3px;"></i> Thấp
+                                </span>
+                                <!-- Mặc định các trường hợp còn lại -> Màu Vàng -->
+                                <span th:case="*" class="badge bg-warning">
+                                    <i class="fa-solid fa-circle-exclamation" style="margin-right: 3px;"></i> 
+                                    <span th:text="${phieu.mucDoUuTien}">Bình thường</span>
+                                </span>
+                            </th:block>
+                        </td>
+                        <td>
+                            <!-- Nếu trạng thái là Đang xử lý thì hiện form gửi cập nhật -->
+                            <form th:if="${phieu.suCo != null and phieu.suCo.trangThai == 'Đang xử lý'}" th:action="@{/nhanvien/capnhat}" method="post" style="display:inline;">
+                                <input type="hidden" name="maSuCo" th:value="${phieu.maSuCo}" />
+                                <input type="hidden" name="username" th:value="${param.username != null ? param.username : 'nhanvien1'}" />
+                                <button type="submit" class="btn-action btn-update" style="color: white; border: none; padding: 8px 14px; border-radius: 5px; cursor: pointer; white-space: nowrap;">
+                                    <i class="fa-solid fa-check"></i> Đánh dấu đã xử lý
+                                </button>
+                            </form>
+                            
+                            <!-- Nếu trạng thái là Đã hoàn thành thì chỉ hiện chữ -->
+                            <span th:if="${phieu.suCo != null and phieu.suCo.trangThai == 'Đã hoàn thành'}" style="color: #6c757d; font-style: italic; font-size: 13px; font-weight: 500;">
+                                <i class="fa-solid fa-check-double" style="color: #28a745;"></i> Đã xử lý xong
+                            </span>
+                            
+                            <!-- Các trạng thái khác nếu có -->
+                            <span th:if="${phieu.suCo == null or (phieu.suCo.trangThai != 'Đang xử lý' and phieu.suCo.trangThai != 'Đã hoàn thành')}" style="color: #6c757d; font-style: italic; font-size: 13px;">
+                                <span th:text="${phieu.suCo != null ? phieu.suCo.trangThai : 'Chờ duyệt'}">Chờ duyệt</span>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr th:if="${listPhieu == null or listPhieu.empty}">
+                        <td colspan="6" style="text-align: center; color: var(--text-gray); padding: 30px;">
+                            <i class="fa-solid fa-check-circle" style="font-size: 24px; color: var(--primary); margin-bottom: 10px; display: block;"></i>
+                            Hiện tại tổ đội của bạn chưa có nhiệm vụ mới nào được phân công.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Footer nằm bên trong .content để khớp chuẩn lề trái/phải -->
+        <div class="footer">
+            © 2026 Cổng Báo Cáo Sự Cố Môi Trường. 
+        </div>
+    </div>
+</body>
+</html>
